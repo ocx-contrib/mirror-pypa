@@ -126,7 +126,7 @@ versions:
   # sdist, and none is yanked.
   min: "1.16.0"
   new_per_run: 8
-  poll_interval: "41 */6 * * *"
+  poll_interval: "17 1-23/6 * * *"
 
 platforms:
   # Kept OUT of mirror-base.yml on purpose — see the shallow-merge note there.
