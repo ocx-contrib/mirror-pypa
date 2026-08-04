@@ -1,0 +1,44 @@
+# Repo-wide policy for PyPA (Python Packaging Authority) tooling.
+#
+# NOT a spec: it has no name/target/source and is never loaded on its own.
+# Everything a package owns (name, target, source, python, wheels, catalog,
+# tests, versions, platforms, announce, annotations) stays in that package's
+# own file.
+#
+# ⚠️ `extends:` is a SHALLOW merge of top-level keys. A spec that sets a key
+# below replaces that block OUTRIGHT — there is no per-key merge. `platforms:`
+# is deliberately NOT here: it carries both the runner matrix and the container
+# legs, and for an env package the container legs are what turn the `wheels:`
+# key's libc claim into evidence. A future PyPA package with a different
+# support envelope must not inherit pipx's.
+#
+# `verify:` is also absent — `github_asset_digest` is a GitHub-source knob and
+# these are PyPI-sourced env packages (wheel integrity comes from the derived
+# PEP 751 lock's own hashes). Add it if a github_release package ever lands here.
+
+skip_prereleases: true
+cascade: true
+
+# The fleet rule. A cascade tag re-points on every re-publish; without a build
+# segment the new manifest reuses the bare version tag and orphans the prior
+# digest for GC, breaking any @sha256: pin in a consumer's ocx.lock. PyPA
+# versions are bare PEP 440 releases (`1.16.5`) with no `+build` segment for a
+# date stamp to collide with, so `date` is safe here.
+build_timestamp: date
+
+concurrency:
+  # An env package is many small wheel layers (pipx resolves to 6), not one
+  # large archive — the downloads are pythonhosted wheels in the tens of KB to
+  # low MB. Push is the slow half (one standalone content-addressed
+  # registration per not-yet-published wheel, then the app's own layers).
+  max_downloads: 8
+  max_bundles: 4
+  max_pushes: 2
+  rate_limit_ms: 100
+  max_retries: 3
+  compression_threads: 0
+
+notify:
+  discord:
+    webhook_secret: OCX_MIRROR_DISCORD_HOOK
+    user_id: "227748867204972545"  # pinged in-message on failures

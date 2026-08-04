@@ -1,0 +1,164 @@
+#:schema https://ocx.sh/schemas/mirror/v1.json
+extends: ../mirror-base.yml
+
+# pipx — install and run Python applications in isolated environments.
+#
+# ─── Why this is NOT a github_release mirror ──────────────────────────────────
+# pypa/pipx's GitHub release asset is a single `pipx.pyz` zipapp, and it is NOT
+# portable. Measured on the 1.16.5 release asset:
+#
+#   $ gh release download 1.16.5 --repo pypa/pipx --pattern pipx.pyz
+#   $ unzip -l pipx.pyz | grep -oE '[^/ ]+\.so' | sort -u
+#   955cd85d9c9a4f4b30d3__mypyc.cpython-314-x86_64-linux-gnu.so
+#   __init__.cpython-314-x86_64-linux-gnu.so
+#   _parser.cpython-314-x86_64-linux-gnu.so
+#   _re.cpython-314-x86_64-linux-gnu.so
+#   _types.cpython-314-x86_64-linux-gnu.so
+#
+# Five mypyc-compiled extension modules bound to CPython 3.14 on glibc x86_64,
+# vendored from whichever runner built the zipapp. Mirroring that asset would
+# publish a "portable" artifact that runs on exactly one interpreter and one
+# platform. It is deliberately not mirrored.
+#
+# Instead this uses ocx-mirror's Python-app source type: versions are discovered
+# from the PyPI JSON API, a PEP 751 lock is derived per version in-pipeline via
+# `uv pip compile --universal`, and the resolved wheels are composed with a
+# private python-build-standalone interpreter into a runnable environment
+# package. No pip, uv or venv is needed at runtime.
+name: pipx                    # PEP 503-normalizes to the root package in the lock
+
+target:
+  registry: ghcr.io
+  repository: ocx-contrib/pypa/pipx
+
+source:
+  type: pypi
+  package: pipx               # PEP 503 name on the index
+
+python:
+  # The private interpreter. python-build-standalone publishes 3.13.14 with its
+  # own per-libc index entries (linux/{amd64,arm64}+libc.{glibc,musl}, darwin
+  # amd64/arm64, windows/amd64), which is what lets the plain `wheels:` keys
+  # below carry no libc requirement of their own — the interpreter resolves the
+  # host's libc at materialize, and pipx's wheels are pure.
+  #   $ OCX_HOME=$(mktemp -d) ocx package inspect \
+  #       ocx.sh/astral-sh/python-build-standalone
+  #   → 7 candidates, linux entries split +libc.glibc / +libc.musl
+  # pipx declares `requires-python >=3.10` across the whole 1.16.x range, so
+  # 3.13 is comfortably in support and not the newest-minor bleeding edge.
+  version: "3.13.14"
+  abi: cp313
+  interpreter_package: "ocx.sh/astral-sh/python-build-standalone:3.13.14"
+  lock:
+    # Universal resolution — one lock serves every platform, and the
+    # environment markers (`colorama; sys_platform == "win32"`,
+    # `tomli; python_version < "3.11"`) are carried rather than pre-decided.
+    universal: true
+  # `auto` (the default, stated for the record): only the ROOT package's own
+  # console scripts synthesize. pipx registers exactly one —
+  #   $ python -c "import importlib.metadata as m; \
+  #       print([e.name for e in m.distribution('pipx').entry_points \
+  #              if e.group=='console_scripts'])"
+  #   ['pipx']
+  # — so `auto` and an explicit list are the same set here, and `all` would
+  # additionally expose dependency shims (argcomplete's) that are not ours to
+  # put on a consumer's PATH. The composed env always also carries `python`.
+  entrypoints: auto
+
+# ─── Support envelope ─────────────────────────────────────────────────────────
+# pipx and its whole resolved closure are pure-Python `py3-none-any` wheels —
+# argcomplete, filelock, packaging, platformdirs, userpath (+ colorama on
+# win32). Verified against the PyPI JSON API for every in-range version:
+#
+#   $ python3 -c "...urlopen('https://pypi.org/pypi/pipx/1.16.5/json')..."
+#   pipx-1.16.5-py3-none-any.whl  (+ the sdist; no compiled wheel exists)
+#
+# — so nothing in the wheel closure needs a libc at all.
+#
+# ⚠️ The Linux keys are nonetheless SPLIT BY LIBC, and that is not optional.
+# A plain `linux/amd64` key would be the natural reading of the reference
+# ("pure wheels only, runs on any libc"), but the composed env also contains
+# the private interpreter BY REFERENCE, and that is a native artifact. The
+# interpreter package publishes only per-libc Linux entries, so composing
+# against a featureless key has nothing to select and `prepare` fails closed:
+#
+#   $ ocx-mirror package pipeline prepare --spec … --version 1.16.5
+#   ERROR pylock error: interpreter package '…/python-build-standalone:3.13.14'
+#   has no entry compatible with platform 'linux/amd64' (available:
+#   darwin/amd64, darwin/arm64, linux/amd64+libc.glibc, linux/amd64+libc.musl,
+#   linux/arm64+libc.glibc, linux/arm64+libc.musl, windows/amd64)
+#
+# So `+libc.*` here is an honest requirement inherited from the interpreter,
+# not a property of pipx. Both flavours are published, so both libc families
+# are served; the key-derived default filters ([manylinux, any] and
+# [musllinux, any]) each admit the pure `any` wheels unchanged.
+#
+# Push-time container gating routes these automatically: a `+libc.glibc` entry
+# is gated on the ubuntu/fedora legs, a `+libc.musl` entry on the alpine leg.
+# That is what makes each key's claim evidence rather than assertion.
+wheels:
+  "linux/amd64+libc.glibc": ~
+  "linux/amd64+libc.musl": ~
+  "linux/arm64+libc.glibc": ~
+  "linux/arm64+libc.musl": ~
+  # Pass 2 (darwin) / pass 3 (windows) — staged per the cost rule. Uncomment
+  # HERE and in `platforms:` together, then re-run `generate ci`.
+  # darwin/amd64: ~
+  # darwin/arm64: ~
+  # windows/amd64: ~
+  # No windows/arm64: the interpreter package publishes no windows/arm64
+  # candidate (7 candidates, listed above), so there is nothing to compose.
+
+catalog:
+  # The logo is shared at the repo root; `catalog.*` resolves against the spec's
+  # own directory, so a nested spec that omits this ships with no logo and no
+  # error.
+  logo: ../logo.svg
+
+tests:
+  - name: smoke
+    # `tests[].script` resolves against the REPOSITORY ROOT, unlike catalog:.
+    script: pipx/tests/smoke.star
+
+versions:
+  # Newest minor series only (owner rule: recent versions). 1.16.0 is the floor
+  # of the current train; every 1.16.x release carries both a wheel and an
+  # sdist, and none is yanked.
+  min: "1.16.0"
+  new_per_run: 8
+  poll_interval: "41 */6 * * *"
+
+platforms:
+  # Kept OUT of mirror-base.yml on purpose — see the shallow-merge note there.
+  # A featureless wheels key is gated by EVERY container leg of its base
+  # platform, so all three images must be green for the entry to publish.
+  linux/amd64:
+    runner: ubuntu-latest
+    containers:
+      - { image: "ubuntu:24.04", shell: bash }
+      - { image: "alpine:3.20",  shell: sh }
+      - { image: "fedora:40",    shell: bash }
+  linux/arm64:
+    # arm64 container legs run natively — no qemu — so the runner arch must
+    # match the platform or the renderer reds the leg up front.
+    runner: ubuntu-24.04-arm
+    containers:
+      - { image: "ubuntu:24.04", shell: bash }
+      - { image: "alpine:3.20",  shell: sh }
+      - { image: "fedora:40",    shell: bash }
+  # darwin/amd64:
+  #   runner: macos-14      # Intel slice under Rosetta 2 — never macos-13
+  #   prefix: ["arch", "-x86_64"]
+  # darwin/arm64:
+  #   runner: macos-14
+  #   shell: bash
+  # windows/amd64:
+  #   runner: windows-latest
+  #   shell: pwsh
+
+announce:
+  package: pypa/pipx          # logical name — not derived from `target`
+  fork: ocx-contrib/index
+
+annotations:
+  org.opencontainers.image.licenses: MIT
