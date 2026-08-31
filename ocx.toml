@@ -1,7 +1,7 @@
 #:schema https://ocx.sh/schemas/project/v1.json
 [tools]
-cli    = "ocx.sh/ocx/cli:0.5"
-mirror = "ocx.sh/ocx/mirror:0.5"
+cli    = "ocx.sh/ocx/cli:0.6"
+mirror = "ocx.sh/ocx/mirror:0.6"
 # `source.type: pypi` derives a PEP 751 lock per version in `pipeline plan` by
 # spawning `uv pip compile` off PATH (ocx_mirror src/pipeline/lock_derive.rs
 # resolve_uv_binary). Without this the plan job dies with exit 1.
