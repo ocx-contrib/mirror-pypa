@@ -48,7 +48,10 @@ python:
   # 3.13 is comfortably in support and not the newest-minor bleeding edge.
   version: "3.13.14"
   abi: cp313
-  interpreter_package: "ocx.sh/astral-sh/python-build-standalone:3.13.14"
+  # Physical GHCR path, not `ocx.sh/…`: prepare resolves this coordinate
+  # straight against the registry, and the ocx.sh facade has no manifests
+  # (exit 69 "manifest not found"). Same digest as the index entry.
+  interpreter_package: "ghcr.io/ocx-contrib/astral-sh/python-build-standalone:3.13.14"
   lock:
     # Universal resolution — one lock serves every platform, and the
     # environment markers (`colorama; sys_platform == "win32"`,
