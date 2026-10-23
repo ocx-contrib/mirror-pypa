@@ -2,8 +2,8 @@
 lock_version = 3
 declaration_hash_version = 1
 declaration_hash = "sha256:35804fd44e602b9a2c31e8b14b889873f19b894234d6d2f0f13857fa8b3e0a52"
-generated_by = "ocx 0.5.3"
-generated_at = "2026-08-31T02:19:13Z"
+generated_by = "ocx 0.6.0"
+generated_at = "2026-10-23T05:21:10Z"
 
 [[tool]]
 name = "cli"
@@ -11,12 +11,12 @@ group = "default"
 repository = "ocx.sh/ocx/cli"
 
 [tool.platforms]
-"darwin/amd64" = "sha256:c1c65ce978812d30e23a096b17ef9c849fe4d03f0bd41cbd07e964560acabdd4"
-"darwin/arm64" = "sha256:6f297b7787284a87068926a9c14c53ade356446fcf439d89367400b5fb092f4f"
-"linux/amd64" = "sha256:e9113c87037ed72c9c1f989ff1ec938bf71e3aef11144a76a350105f2b56c166"
-"linux/arm64" = "sha256:d33f56f29114c7076bce125fe004470dd44b5ed81610289790c4791ee6b70746"
-"windows/amd64" = "sha256:2f36494b94bed58bf19fe060fa5fcf5f39d4cd28571e596ee709144daa30cf4e"
-"windows/arm64" = "sha256:b68bc5262793d6d9e33b4953c909cac42abab8938d42e23997f9d20300f9f06c"
+"darwin/amd64" = "sha256:42e9fc9007aa1e70bde87005ae89edbce418b0a24b48efd4c9f9215774a11c56"
+"darwin/arm64" = "sha256:d9a5d3f92806762f11139bb3be69e154b4487a472d55f23e346274d44c704847"
+"linux/amd64" = "sha256:853a43059f4205e84dc2f9bb62210cbd93159268e1d8fe3a54837332e4936250"
+"linux/arm64" = "sha256:d8e1a580de62e284623da0182e3021ce8458276b2c10331f8e3ba061c458af54"
+"windows/amd64" = "sha256:f771f61a7d596a99dd518a95df56d86aa7bdbda5bd6d4992ae072101c61c368d"
+"windows/arm64" = "sha256:68a8425d23d519707723fda1c0ad6467302e4e453d5fdb42e190adb1aeb978aa"
 
 [[tool]]
 name = "mirror"
@@ -24,12 +24,12 @@ group = "default"
 repository = "ocx.sh/ocx/mirror"
 
 [tool.platforms]
-"darwin/amd64" = "sha256:2f21185f707c94b49c59bde4fab04e36c4e073e819ad4622b70a8c47b4d4537a"
-"darwin/arm64" = "sha256:7b52afb816b2307ce1fe326c5b1cfbac9205164c7ba04460995b75296a663d4e"
-"linux/amd64" = "sha256:33500e378013cc0b4f06c2896ce01bed5c2a5d40c79036f2ac95f47caedede34"
-"linux/arm64" = "sha256:f1a0486651658978741aeeeca571d312f603027d0ed49a9f740cfa7fdeb52458"
-"windows/amd64" = "sha256:b4f49f419552329d6cb2f8a07d82e0e42311ebe853da0279d3d1aecf2c28e7e1"
-"windows/arm64" = "sha256:babe8db731396f02de58cc5b4a5d661799bbf85b61f45578155936aaabb157a9"
+"darwin/amd64" = "sha256:8229631007f0b55aaaa87d9ec4f45ddb68362c6daa0e398872a408df3c4970b1"
+"darwin/arm64" = "sha256:fc8b15a204c3aa539aad9a21f2af8d579c64bbe5271cdba31ed73bd3ca81ce35"
+"linux/amd64" = "sha256:8cd1df3ed7f0564de181d26071e3014393fec0ed5db02694483b52bd1a74239c"
+"linux/arm64" = "sha256:f8e075c47f020d889a197ec7a520573df507547a171c5b5348e6930f0c2c00a5"
+"windows/amd64" = "sha256:06b688eb66d7794730d3daf906f8fa349279e48930a5fbe8d155338d6d26a281"
+"windows/arm64" = "sha256:a3b09e6009123f74c306d52e5c0d626ae15dab341ff9f7b4f104660c86f65903"
 
 [[tool]]
 name = "uv"
