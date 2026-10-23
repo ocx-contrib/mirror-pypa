@@ -35,6 +35,12 @@ source:
   type: pypi
   package: pipx               # PEP 503 name on the index
 
+# Shared wheel layers live at `<wheel_scope>/<index-host>/<pkg>` on the target
+# registry. The default `pip-packages` is a top-level ghcr namespace the org
+# token cannot write (403 "installation does not exist"), so scope it under
+# the org like every other repository this mirror pushes.
+wheel_scope: ocx-contrib/pip-packages
+
 python:
   # The private interpreter. python-build-standalone publishes 3.13.14 with its
   # own per-libc index entries (linux/{amd64,arm64}+libc.{glibc,musl}, darwin
