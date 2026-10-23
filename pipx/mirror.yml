@@ -110,11 +110,9 @@ wheels:
   "linux/amd64+libc.musl": ~
   "linux/arm64+libc.glibc": ~
   "linux/arm64+libc.musl": ~
-  # Pass 2 (darwin) / pass 3 (windows) — staged per the cost rule. Uncomment
-  # HERE and in `platforms:` together, then re-run `generate ci`.
-  # darwin/amd64: ~
-  # darwin/arm64: ~
-  # windows/amd64: ~
+  darwin/amd64: ~
+  darwin/arm64: ~
+  windows/amd64: ~
   # No windows/arm64: the interpreter package publishes no windows/arm64
   # candidate (7 candidates, listed above), so there is nothing to compose.
 
@@ -155,15 +153,14 @@ platforms:
       - { image: "ubuntu:24.04", shell: bash }
       - { image: "alpine:3.20",  shell: sh }
       - { image: "fedora:40",    shell: bash }
-  # darwin/amd64:
-  #   runner: macos-14      # Intel slice under Rosetta 2 — never macos-13
-  #   prefix: ["arch", "-x86_64"]
-  # darwin/arm64:
-  #   runner: macos-14
-  #   shell: bash
-  # windows/amd64:
-  #   runner: windows-latest
-  #   shell: pwsh
+  darwin/amd64:
+    runner: macos-14      # Intel slice under Rosetta 2 — never macos-13
+  darwin/arm64:
+    runner: macos-14
+    shell: bash
+  windows/amd64:
+    runner: windows-latest
+    shell: pwsh
 
 announce:
   package: pypa/pipx          # logical name — not derived from `target`
