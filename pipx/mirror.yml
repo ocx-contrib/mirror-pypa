@@ -154,9 +154,9 @@ platforms:
       - { image: "alpine:3.20",  shell: sh }
       - { image: "fedora:40",    shell: bash }
   darwin/amd64:
-    runner: macos-14      # Intel slice under Rosetta 2 — never macos-13
+    runner: macos-15      # Intel slice under Rosetta 2 — never macos-13
   darwin/arm64:
-    runner: macos-14
+    runner: macos-15
     shell: bash
   windows/amd64:
     runner: windows-latest
