@@ -2,9 +2,10 @@
 #
 # This is an env package, not an archive bundle: the composed artifact is
 # pipx's wheel closure plus a private python-build-standalone interpreter, with
-# `pipx` synthesized from the root package's single console_script and `python`
-# always present. So the contract to prove is (1) both entrypoints run out of
-# the composed env, (2) pipx's own configuration derivation is wired to the
+# `pipx` synthesized from the root package's single console_script. The
+# interpreter is a PRIVATE dependency (ocx-mirror >= 0.6.5): no `python` is
+# exported. So the contract to prove is (1) the entrypoint runs out of the
+# composed env, (2) pipx's own configuration derivation is wired to the
 # environment it was handed, and (3) the interpreter is the one this package
 # declared, not one it found on the host.
 #
@@ -78,24 +79,19 @@ expect.eq(r_list.stdout.count("\"venvs\": {}"), 1)
 r_bogus = ocx.run("pipx", "ocxsmoke-not-a-subcommand", env = ENV)
 expect.eq(r_bogus.exit_code, 2)
 
-# ── The always-present `python` entrypoint, and WHICH interpreter it is ───────
-# An env package ships `python` (not `python3` — python-build-standalone only
-# has the latter on POSIX). Asserting the computed 42 proves it executes;
-# asserting the version prefix proves the private interpreter this spec pinned
-# was composed in, rather than whatever the host had on PATH.
-r_py = ocx.run("python", "-c", "print(6 * 7)")
+# ── WHICH interpreter pipx runs on ────────────────────────────────────────────
+# `python` is no longer exported (private dependency), so ask pipx itself: its
+# default interpreter is `sys.executable`. Asserting it lives in the ocx package
+# store proves the private python-build-standalone interpreter was composed in,
+# not whatever the host had on PATH. POSIX also pins the minor via the
+# `python3.13` filename; Windows ships a bare `python.exe`.
+r_py = ocx.run("pipx", "environment", "--value", "PIPX_DEFAULT_PYTHON", env = ENV)
 expect.ok(r_py)
-expect.contains(r_py.stdout, "42")
+py = r_py.stdout.strip()
+expect.contains(py, "packages")
 
-r_pyver = ocx.run("python", "-c", "import sys; print('%d.%d' % sys.version_info[:2])")
-expect.ok(r_pyver)
-expect.eq(r_pyver.stdout.strip(), "3.13")
+def check_minor():
+    if ocx.target_platform.os != ocx.os.Windows:
+        expect.true(py.endswith("python3.13"), msg = "pipx default python is not 3.13: " + py)
 
-# Cross-check: importing pipx through the `python` entrypoint must report the
-# SAME version the `pipx` entrypoint does. That is the assertion that the app's
-# wheel layers are on the composed PYTHONPATH — a bundle carrying only the
-# interpreter would pass every `python` check above and fail here — and that the
-# two synthesized entrypoints resolve one environment rather than two.
-r_import = ocx.run("python", "-c", "from pipx.version import __version__; print(__version__)")
-expect.ok(r_import)
-expect.eq(r_import.stdout.strip(), r_version.stdout.strip())
+check_minor()

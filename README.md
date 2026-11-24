@@ -24,8 +24,8 @@ PyPA ships Python **applications**, so this repository uses ocx-mirror's
 3. the resolved wheels are composed with a private
    [python-build-standalone](https://github.com/astral-sh/python-build-standalone)
    interpreter into a runnable environment package,
-4. entrypoints are synthesized from the root package's `console_scripts`, plus
-   an always-present `python`.
+4. entrypoints are synthesized from the root package's `console_scripts`; the
+   interpreter is a private dependency and is not exported.
 
 Consequences worth knowing before editing a spec here:
 

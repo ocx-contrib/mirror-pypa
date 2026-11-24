@@ -17,7 +17,6 @@ It is a [PyPA](https://www.pypa.io/) project.
 ## What's included
 
 - **pipx** — the CLI (`pipx install`, `pipx run`, `pipx list`, `pipx inject`, …)
-- **python** — the private CPython interpreter this package is composed against
 
 ## How this package differs from the other OCX mirrors
 
