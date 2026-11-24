@@ -26,18 +26,21 @@ ocx.mkdir("ocxsmoke-pipx-home")
 ocx.mkdir("ocxsmoke-pipx-bin")
 ocx.mkdir("ocxsmoke-pipx-man")
 
-# HOME is set to scratch as well as pipx's own vars: pipx derives
+# HOME is set to scratch on Linux as well as pipx's own vars: pipx derives
 # PIPX_COMPLETION_DIR from platformdirs, which needs a writable HOME, and the
-# container legs run with HOME unset. Shared-libs auto-upgrade is pinned off so
+# container legs run with HOME unset. NOT on macOS: the native leg has no
+# OCX_HOME, so the ocx launcher falls back to $HOME/.ocx and rejects the
+# package root ("launcher exec: pkg-root must point inside …"); the runner's
+# HOME is already writable there. Shared-libs auto-upgrade is pinned off so
 # nothing reaches for the network on a first run against a virgin PIPX_HOME.
-ENV = {
-    "HOME": ocx.scratch_root,
+HOME_ENV = {} if ocx.target_platform.os == ocx.os.Darwin else {"HOME": ocx.scratch_root}
+ENV = dict(HOME_ENV, **{
     "PIPX_HOME": HOME_DIR,
     "PIPX_BIN_DIR": BIN_DIR,
     "PIPX_MAN_DIR": MAN_DIR,
     "PIPX_DISABLE_SHARED_LIBS_AUTO_UPGRADE": "1",
     "PIPX_USE_EMOJI": "0",
-}
+})
 
 # ── Tier 2: the synthesized entrypoint runs, and reports a version SHAPE ──────
 r_version = ocx.run("pipx", "--version", env = ENV)
